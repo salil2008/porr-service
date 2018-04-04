@@ -1,0 +1,6 @@
+{
+	"name": "Staging",
+	"app_name": "PORR SERVICE",
+	"MONGOLAB_URI":"mongodb://porr_admin:porr_admin@ds231719.mlab.com:31719/porr-db",
+	"API_KEY":"f3c6559f-8bbc-443b-8535-f81cbff76e9a"
+}
