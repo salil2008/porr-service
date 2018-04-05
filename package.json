@@ -19,6 +19,7 @@
     "node-path": "0.0.3",
     "pug": "~2.0.0-beta6",
     "serve-favicon": "~2.3.0",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "when": "^3.7.8"
   }
 }

@@ -2,6 +2,7 @@ var config = require('../config');
 var mongoose = require('mongoose');
 var async = require('async');
 var _ = require('underscore');
+var when = require('when');
 var Geolocation = require('./model').geolocation;
 
 function calculateGforce(input_object) {
@@ -10,6 +11,19 @@ function calculateGforce(input_object) {
 	divident_value = Math.pow(parseFloat(input_object.accelerometer.x), 2) + Math.pow(parseFloat(input_object.accelerometer.y), 2) + Math.pow(parseFloat(input_object.accelerometer.z), 2);
 	divident = Math.sqrt(divident_value);
 	return divident/divisor;
+}
+
+function calculateSeverity(object) {
+	let severity = 0
+	let gforce = parseFloat(object.gforce)
+	if(gforce > 0.5 && gforce < 0.6) {
+		object.severity = 1
+	} else if(gforce > 0.6 && gforce < 0.7) {
+		object.severity = 2
+	} else if(gforce > 0.7) {
+		object.severity = 3
+	}
+	return object;
 }
 
 var self = module.exports = {
@@ -30,9 +44,8 @@ var self = module.exports = {
 				Geolocation.insertMany(fdata, function(err, result) {
 					if(err) {
 						console.log(err)
-						callback('error', null);
+						callback(err, null);
 					} else {
-						console.log(result)
 						callback(null, 'done');
 					}
 				});
@@ -47,22 +60,30 @@ var self = module.exports = {
 	},
 
 	fetchMethod : function(callback) {
-		async.series({
-		    fetch: function(callback) {
+		async.waterfall([
+		    function(callback) {
 		    	//Fetch data from mongo
-		    	Geolocation.where('gforce').gt("0.7").exec(function(err, result) {
-		    		if(err) {
-				    	callback(err, null);
-				    } else {
-				    	callback(null, result);
-				    }
-		    	});
+		    	Geolocation.where('gforce').gt("0.5").exec()
+		    	.then(function(result){
+		            callback(null,result)
+		        }).catch(function(err){
+		            callback(err,null)
+		        })
+		    },
+
+		    function(fdata, callback) {
+		    	var proccessed_array = []
+				_.each(fdata, function(object) {
+					proccessed_array.push(calculateSeverity(object))
+				})
+				console.log("No. of processed entries are : " + proccessed_array.length)
+				callback(null, proccessed_array);
 		    }
-		}, function(err, results) {
+		], function(err, results) {
 		    if(err) {
 		    	callback(err, null);
 		    } else {
-		    	callback(null, results.fetch);
+		    	callback(null, results);
 		    }
 		});
 	}
