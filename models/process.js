@@ -74,6 +74,7 @@ var self = module.exports = {
 		    function(fdata, callback) {
 		    	var proccessed_array = []
 				_.each(fdata, function(object) {
+					object = object.toJSON()
 					proccessed_array.push(calculateSeverity(object))
 				})
 				console.log("No. of processed entries are : " + proccessed_array.length)
