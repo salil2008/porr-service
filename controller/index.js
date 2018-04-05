@@ -5,10 +5,10 @@ var processLogic = require('../models/process');
 
 var self = module.exports = {
 	processLoc : function(req, res, next) {
-		console.log(req.body)
-		if(req.body && req.body.length > 0) {
-			console.log(req.body.length)
-			processLogic.processMethod(req.body, function(err, result) {
+		let input = JSON.parse(req.body.data)
+		if(input && input.length > 0) {
+			console.log(input.length)
+			processLogic.processMethod(input, function(err, result) {
 				if(err) {
 					res.json({
 						"code" : 500,
