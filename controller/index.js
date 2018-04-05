@@ -5,6 +5,7 @@ var processLogic = require('../models/process');
 
 var self = module.exports = {
 	processLoc : function(req, res, next) {
+		console.log(req.body)
 		if(req.body && req.body.length > 0) {
 			console.log(req.body.length)
 			processLogic.processMethod(req.body, function(err, result) {
