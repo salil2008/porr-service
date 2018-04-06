@@ -19,7 +19,8 @@ var geolocationSchema = new Schema({
 		lat : {type: String},
 		long : {type: String}
 	},
-	gforce : {type: String}
+	gforce : {type: String},
+	severity : {type: String}
 });
 
 geolocationSchema.plugin(timestamps);

@@ -1,6 +1,7 @@
 var config = require('../config');
 var mongoose = require('mongoose');
 var async = require('async');
+var url = require('url');
 var processLogic = require('../models/process');
 
 var self = module.exports = {
@@ -32,7 +33,9 @@ var self = module.exports = {
 	},
 
 	fetchLoc : function(req, res, next) {
-		processLogic.fetchMethod(function(err, result) {
+		var query_data = url.parse(req.url, true).query
+		console.log(query_data)
+		processLogic.fetchMethod(query_data, function(err, result) {
 			if(err) {
 				res.json({
 					"code" : 500,
@@ -43,6 +46,24 @@ var self = module.exports = {
 				res.json({
 					"code" : 200,
 					"message" : "Successfully fetched.",
+					"data" : result
+				})
+			}
+		});
+	},
+
+	flushDb : function(req, res, next) {
+		processLogic.flushDbMethod(function(err, result) {
+			if(err) {
+				res.json({
+					"code" : 500,
+					"message" : "Error occured. Could not delete.",
+					"data" : err
+				})
+			} else {
+				res.json({
+					"code" : 200,
+					"message" : "Successfully flushed database.",
 					"data" : result
 				})
 			}

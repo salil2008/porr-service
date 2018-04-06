@@ -59,7 +59,7 @@ var self = module.exports = {
 		});
 	},
 
-	fetchMethod : function(callback) {
+	fetchMethod : function(options, callback) {
 		async.waterfall([
 		    function(callback) {
 		    	//Fetch data from mongo
@@ -85,6 +85,26 @@ var self = module.exports = {
 		    	callback(err, null);
 		    } else {
 		    	callback(null, results);
+		    }
+		});
+	},
+
+	flushDbMethod : function(callback) {
+		async.series({
+			flush : function(callback) {
+				mongoose.connection.db.dropCollection('geolocations', function(err, result) {
+					if(err) {
+				    	callback(err, null);
+				    } else {
+				    	callback(null, result);
+				    }
+				})
+			}
+		}, function(err, result) {
+		    if(err) {
+		    	callback(err, null);
+		    } else {
+		    	callback(null, result.flush);
 		    }
 		});
 	}

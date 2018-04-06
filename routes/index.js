@@ -20,4 +20,8 @@ router.get('/api/fetch', AuthMiddlewares.isValid, function(req, res, next) {
   controller.fetchLoc(req, res, next);
 });
 
+router.delete('/api/flush', AuthMiddlewares.isValid, function(req, res, next) {
+  controller.flushDb(req, res, next);
+});
+
 module.exports = router;
