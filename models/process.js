@@ -16,11 +16,11 @@ function calculateGforce(input_object) {
 function calculateSeverity(object) {
 	let severity = 0
 	let gforce = parseFloat(object.gforce)
-	if(gforce > 0.5 && gforce < 0.6) {
+	if(gforce > 1.1 && gforce < 1.2) {
 		object.severity = 1
-	} else if(gforce > 0.6 && gforce < 0.7) {
+	} else if(gforce > 1.2 && gforce < 1.3) {
 		object.severity = 2
-	} else if(gforce > 0.7) {
+	} else if(gforce > 1.3) {
 		object.severity = 3
 	}
 	return object;
@@ -63,7 +63,7 @@ var self = module.exports = {
 		async.waterfall([
 		    function(callback) {
 		    	//Fetch data from mongo
-		    	Geolocation.where('gforce').gt("0.5").exec()
+		    	Geolocation.where('gforce').gt("1.1").exec()
 		    	.then(function(result){
 		            callback(null,result)
 		        }).catch(function(err){
