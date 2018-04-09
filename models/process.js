@@ -63,21 +63,43 @@ var self = module.exports = {
 		async.waterfall([
 		    function(callback) {
 		    	//Fetch data from mongo
-		    	Geolocation.where('gforce').gt("1.028").exec()
-		    	.then(function(result){
-		            callback(null,result)
-		        }).catch(function(err){
-		            callback(err,null)
-		        })
+		    	let fdata = {}
+		    	let query = Geolocation.where('gforce').gt("1.028")
+
+		    	if(options.page && options.perPage) {
+		    		query.skip(parseInt((options.perPage * options.page) - options.perPage)).limit(parseInt(options.perPage))
+		    	}
+
+		    	query.exec(function(err, items) {
+		    		if(err) {
+		    			console.log(err)
+		    			callback(err, null)
+		    		} else {
+		    			Geolocation.where('gforce').gt("1.028").count().exec()
+			    		.then(function(result){
+			    			fdata.data = items
+			    			fdata.total_data = result
+				            callback(null, fdata)
+				        }).catch(function(err){
+				            callback(err,null)
+				        })
+		    		}
+		    		
+		    	})
+		    	
 		    },
 
 		    function(fdata, callback) {
-		    	var proccessed_array = []
-				_.each(fdata, function(object) {
+		    	let proccessed_array = {
+		    		total_data : fdata.total_data,
+		    		processed_data : []
+		    	}
+
+				_.each(fdata.data, function(object) {
 					object = object.toJSON()
-					proccessed_array.push(calculateSeverity(object))
+					proccessed_array.processed_data.push(calculateSeverity(object))
 				})
-				console.log("No. of processed entries are : " + proccessed_array.length)
+				console.log("No. of processed entries are : " + proccessed_array.processed_data.length)
 				callback(null, proccessed_array);
 		    }
 		], function(err, results) {

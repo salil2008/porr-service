@@ -46,7 +46,8 @@ var self = module.exports = {
 				res.json({
 					"code" : 200,
 					"message" : "Successfully fetched.",
-					"data" : result
+					"total_data" : result.total_data,
+					"data" : result.processed_data
 				})
 			}
 		});
