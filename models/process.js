@@ -10,7 +10,7 @@ function calculateGforce(input_object) {
 	divisor = 9.81;
 	divident_value = Math.pow(parseFloat(input_object.accelerometer.x), 2) + Math.pow(parseFloat(input_object.accelerometer.y), 2) + Math.pow(parseFloat(input_object.accelerometer.z), 2);
 	divident = Math.sqrt(divident_value);
-	return divident/divisor;
+	return (divident/divisor).toFixed(4);
 }
 
 function calculateSeverity(object) {
