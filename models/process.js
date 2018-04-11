@@ -13,14 +13,19 @@ function calculateGforce(input_object) {
 	return (divident/divisor).toFixed(4);
 }
 
-function calculateSeverity(object) {
+function calculateSeverity(filter, object) {
 	let severity = 0
 	let gforce = parseFloat(object.gforce)
-	if(gforce > 1.028 && gforce < 1.1) {
+
+	from = filter.from ? parseFloat(filter.from) : 1.028
+	one = filter.one ? parseFloat(filter.one) : 1.1
+	two = filter.two ? parseFloat(filter.two) : 1.2
+
+	if(gforce > from && gforce < one) {
 		object.severity = 1
-	} else if(gforce > 1.1 && gforce < 1.2) {
+	} else if(gforce > one && gforce < two) {
 		object.severity = 2
-	} else if(gforce > 1.2) {
+	} else if(gforce > two) {
 		object.severity = 3
 	}
 	return object;
@@ -41,14 +46,32 @@ var self = module.exports = {
 		    function(fdata, callback) {
 		        //Save the filter results to mongodb
 		        console.log("Second")
-				Geolocation.insertMany(fdata, function(err, result) {
-					if(err) {
-						console.log(err)
-						callback(err, null);
-					} else {
-						callback(null, 'done');
-					}
-				});
+				Geolocation.insertMany(fdata)
+				.then(function(result){
+				    callback(null, result)
+				}).catch(function(err){
+				    callback(err,null)
+				})
+
+				// var collection = db.collection('entries'),          
+			 //        bulkUpdateOps = [];    
+
+			 //    entries.forEach(function(doc) {
+			 //        bulkUpdateOps.push({ "insertOne": { "document": doc } });
+
+			 //        if (bulkUpdateOps.length === 1000) {
+			 //            collection.bulkWrite(bulkUpdateOps).then(function(r) {
+			 //                // do something with result
+			 //            });
+			 //            bulkUpdateOps = [];
+			 //        }
+			 //    })
+
+			 //    if (bulkUpdateOps.length > 0) {
+			 //        collection.bulkWrite(bulkUpdateOps).then(function(r) {
+			 //            // do something with result
+			 //        });
+			 //    }
 		    }
 		], function (err, result) {
 		    if(err) {
@@ -64,7 +87,18 @@ var self = module.exports = {
 		    function(callback) {
 		    	//Fetch data from mongo
 		    	let fdata = {}
-		    	let query = Geolocation.where('gforce').gt("1.028")
+		    	let query = Geolocation.where('gforce')
+		    	let count_query = Geolocation.where('gforce')
+
+		    	if(options.from) {
+		    		query.gt(options.from)
+		    		count_query.gt(options.from)
+		    	}
+
+		    	if(options.to) {
+		    		query.lt(options.to)
+		    		count_query.lt(options.to)
+		    	}
 
 		    	if(options.page && options.perPage) {
 		    		query.skip(parseInt((options.perPage * options.page) - options.perPage)).limit(parseInt(options.perPage))
@@ -75,7 +109,7 @@ var self = module.exports = {
 		    			console.log(err)
 		    			callback(err, null)
 		    		} else {
-		    			Geolocation.where('gforce').gt("1.028").count().exec()
+		    			count_query.count().exec()
 			    		.then(function(result){
 			    			fdata.data = items
 			    			fdata.total_data = result
@@ -97,7 +131,7 @@ var self = module.exports = {
 
 				_.each(fdata.data, function(object) {
 					object = object.toJSON()
-					proccessed_array.processed_data.push(calculateSeverity(object))
+					proccessed_array.processed_data.push(calculateSeverity(options, object))
 				})
 				console.log("No. of processed entries are : " + proccessed_array.processed_data.length)
 				callback(null, proccessed_array);
