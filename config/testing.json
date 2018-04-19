@@ -1,0 +1,6 @@
+{
+	"name": "Testing",
+	"app_name": "PORR SERVICE TESTING",
+	"MONGOLAB_URI":"mongodb://porr_admin:porr_admin@ds127436.mlab.com:27436/porr-db-testing",
+	"API_KEY":"f3c6559f-8bbc-443b-8535-f81cbff76e9a"
+}
