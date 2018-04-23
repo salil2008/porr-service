@@ -1,1 +1,1 @@
-web: NODE_ENV=testing node bin/www
+web: NODE_ENV=staging node bin/www
