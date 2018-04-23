@@ -47,7 +47,7 @@ var self = module.exports = {
 					"code" : 200,
 					"message" : "Successfully fetched.",
 					"total_data" : result.total_data,
-					"data" : result.processed_data
+					"data" : result.data
 				})
 			}
 		});
@@ -69,5 +69,23 @@ var self = module.exports = {
 				})
 			}
 		});
+	},
+
+	calcSeverity : function(req, res, next) {
+		processLogic.calcSeverityMethod(function(err, result){
+			if(err) {
+				res.json({
+					"code" : 500,
+					"message" : "Error occured. Could not update.",
+					"data" : err
+				})
+			} else {
+				res.json({
+					"code" : 200,
+					"message" : "Successfully calculated and updated.",
+					"data" : result
+				})
+			}
+		})
 	}
 }

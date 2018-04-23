@@ -20,7 +20,7 @@ var geolocationSchema = new Schema({
 		long : {type: String}
 	},
 	gforce : {type: String},
-	severity : {type: String},
+	severity : {type: Number},
 	speed : {type: String},
 	device_name : {type: String}
 });

@@ -13,22 +13,20 @@ function calculateGforce(input_object) {
 	return (divident/divisor).toFixed(4);
 }
 
-function calculateSeverity(filter, object) {
+function calculateSeverity(object) {
 	let severity = 0
 	let gforce = parseFloat(object.gforce)
 
-	from = filter.from ? parseFloat(filter.from) : 1.028
-	one = filter.one ? parseFloat(filter.one) : 1.1
-	two = filter.two ? parseFloat(filter.two) : 1.2
-
-	if(gforce > from && gforce < one) {
-		object.severity = 1
-	} else if(gforce > one && gforce < two) {
-		object.severity = 2
-	} else if(gforce > two) {
-		object.severity = 3
+	if(gforce > 0.9 && gforce < 1.2) {
+		//Pass
+	} else if(gforce > 1.2 && gforce < 1.3 || gforce > 0.7 && gforce < 0.9) {
+		severity = 1
+	} else if(gforce > 1.3 && gforce < 1.39 || gforce > 0.5 && gforce < 0.7) {
+		severity = 2
+	} else if(gforce > 1.39 || gforce < 0.5) {
+		severity = 3
 	}
-	return object;
+	return severity;
 }
 
 var self = module.exports = {
@@ -39,6 +37,7 @@ var self = module.exports = {
 		    	let proccessed_array = []
 		    	_.each(input_array,function(object) {
 		    		object.gforce = calculateGforce(object)
+		    		object.severity = calculateSeverity(object)
 		    		proccessed_array.push(object)
 		    	})
 		        callback(null, proccessed_array);
@@ -50,28 +49,9 @@ var self = module.exports = {
 				.then(function(result){
 				    callback(null, result)
 				}).catch(function(err){
+					console.log(err)
 				    callback(err,null)
 				})
-
-				// var collection = db.collection('entries'),          
-			 //        bulkUpdateOps = [];    
-
-			 //    entries.forEach(function(doc) {
-			 //        bulkUpdateOps.push({ "insertOne": { "document": doc } });
-
-			 //        if (bulkUpdateOps.length === 1000) {
-			 //            collection.bulkWrite(bulkUpdateOps).then(function(r) {
-			 //                // do something with result
-			 //            });
-			 //            bulkUpdateOps = [];
-			 //        }
-			 //    })
-
-			 //    if (bulkUpdateOps.length > 0) {
-			 //        collection.bulkWrite(bulkUpdateOps).then(function(r) {
-			 //            // do something with result
-			 //        });
-			 //    }
 		    }
 		], function (err, result) {
 		    if(err) {
@@ -87,17 +67,13 @@ var self = module.exports = {
 		    function(callback) {
 		    	//Fetch data from mongo
 		    	let fdata = {}
-		    	let query = Geolocation.where('gforce')
-		    	let count_query = Geolocation.where('gforce')
+		    	let query = Geolocation.where('severity')
+		    	let count_query = Geolocation.where('severity')
 
-		    	if(options.from) {
-		    		query.gt(options.from)
-		    		count_query.gt(options.from)
-		    	}
-
-		    	if(options.to) {
-		    		query.lt(options.to)
-		    		count_query.lt(options.to)
+		    	if(options.severity) {
+		    		let number_array = (options.severity.split(',')).map(Number);
+		    		query.in(number_array)
+		    		count_query.in(number_array)
 		    	}
 
 		    	if(options.page && options.perPage) {
@@ -121,20 +97,6 @@ var self = module.exports = {
 		    		
 		    	})
 		    	
-		    },
-
-		    function(fdata, callback) {
-		    	let proccessed_array = {
-		    		total_data : fdata.total_data,
-		    		processed_data : []
-		    	}
-
-				_.each(fdata.data, function(object) {
-					object = object.toJSON()
-					proccessed_array.processed_data.push(calculateSeverity(options, object))
-				})
-				console.log("No. of processed entries are : " + proccessed_array.processed_data.length)
-				callback(null, proccessed_array);
 		    }
 		], function(err, results) {
 		    if(err) {
@@ -161,6 +123,57 @@ var self = module.exports = {
 		    	callback(err, null);
 		    } else {
 		    	callback(null, result.flush);
+		    }
+		});
+	},
+
+	calcSeverityMethod : function(callback) {
+		async.waterfall([
+		    function(callback) {
+		    	//Fetch results
+		    	let query = Geolocation.find()
+		    	query.exec(function(err, items) {
+		    		if(err) {
+		    			console.log(err)
+		    			callback(err, null)
+		    		} else {
+		    			callback(null, items)
+		    		}
+		    		
+		    	})
+		    },
+
+		    function(fdata, callback) {
+		    	//Process and update
+		    	let counter = 0
+		    	let bulkOp = Geolocation.collection.initializeOrderedBulkOp();
+
+		    	_.each(fdata, function(item) {
+		    		bulkOp.find({ '_id': item._id }).updateOne({
+				        '$set': { 'severity': calculateSeverity(item) }
+				    });
+				    counter++;
+				    if(counter % 500 === 0) {
+				        // Execute per 500 operations and re-init
+				        bulkOp.execute();
+				        console.log("ADDED : " + counter)
+				        bulkOp = Geolocation.collection.initializeOrderedBulkOp();
+				    }
+		    	})
+
+		    	// Clean up queues
+				if(counter > 0) {
+				    bulkOp.execute();
+				}
+
+				callback(null, "Done")
+		    	
+		    }
+		], function(err, results) {
+		    if(err) {
+		    	callback(err, null);
+		    } else {
+		    	callback(null, results);
 		    }
 		});
 	}

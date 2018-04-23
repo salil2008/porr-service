@@ -24,4 +24,8 @@ router.delete('/api/flush', AuthMiddlewares.isValid, function(req, res, next) {
   controller.flushDb(req, res, next);
 });
 
+router.put('/api/calculate', AuthMiddlewares.isValid, function(req, res, next) {
+  controller.calcSeverity(req, res, next);
+});
+
 module.exports = router;
