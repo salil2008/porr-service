@@ -21,7 +21,7 @@ var geolocationSchema = new Schema({
 	},
 	gforce : {type: String},
 	severity : {type: Number},
-	speed : {type: String},
+	speed : {type: Number},
 	device_name : {type: String}
 });
 
