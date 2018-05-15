@@ -77,7 +77,14 @@ var self = module.exports = {
 		    	}
 
 		    	if(options.page && options.perPage) {
+		    		if(options.type) {
+			    		query.select('coordinates')
+			    	}
 		    		query.skip(parseInt((options.perPage * options.page) - options.perPage)).limit(parseInt(options.perPage))
+		    	}
+
+		    	if(options.type) {
+		    		query.select('coordinates')
 		    	}
 
 		    	query.exec(function(err, items) {
