@@ -5,6 +5,7 @@ var _ = require('underscore');
 var when = require('when');
 var Geolocation = require('./model').geolocation;
 
+//Utility function to calculate gforce
 function calculateGforce(input_object) {
 	//Calculate gforce
 	divisor = 9.81;
@@ -13,6 +14,7 @@ function calculateGforce(input_object) {
 	return (divident/divisor).toFixed(4);
 }
 
+//Utility function to find severity rating based on gforce
 function calculateSeverity(object) {
 	let severity = 0
 	let gforce = parseFloat(object.gforce)
@@ -30,16 +32,22 @@ function calculateSeverity(object) {
 }
 
 var self = module.exports = {
+	/*
+	1 - Calculate severity and gforce.
+	2 - Save it in db
+	*/
 	processMethod : function(input_array, callback) {
 		async.waterfall([
 		    function(callback) {
 		    	console.log("First")
+		    	console.log("Size of input array : " + input_array.length)
 		    	let proccessed_array = []
 		    	_.each(input_array,function(object) {
 		    		object.gforce = calculateGforce(object)
 		    		object.severity = calculateSeverity(object)
 		    		proccessed_array.push(object)
 		    	})
+		    	console.log("Size of proccessed_array array : " + proccessed_array.length)
 		        callback(null, proccessed_array);
 		    },
 		    function(fdata, callback) {
@@ -70,6 +78,7 @@ var self = module.exports = {
 		    	let query = Geolocation.where('severity')
 		    	let count_query = Geolocation.where('severity')
 
+		    	//Filters section begins
 		    	if(options.severity) {
 		    		let number_array = (options.severity.split(',')).map(Number);
 		    		query.in(number_array)
@@ -86,6 +95,7 @@ var self = module.exports = {
 		    	if(options.type) {
 		    		query.select('coordinates')
 		    	}
+		    	//Filters section ends
 
 		    	query.exec(function(err, items) {
 		    		if(err) {
